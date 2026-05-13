@@ -3,325 +3,431 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Escoamento por Gravidade — Comparativo de Métodos</title>
+<title>Escoamento Gravitacional — Comparativo de Métodos</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0e1117; --panel: #161b27; --border: #252d3d;
-    --c-dw: #00d4aa; --c-an: #f5a623; --c-tc: #e05c5c;
-    --text: #e2e8f0; --muted: #64748b;
-    --mono: 'IBM Plex Mono', monospace; --sans: 'IBM Plex Sans', sans-serif;
+    --bg:#0e1117; --panel:#161b27; --border:#252d3d;
+    --c-dw:#00d4aa; --c-hw:#a78bfa; --c-tc:#e05c5c;
+    --text:#e2e8f0; --muted:#64748b;
+    --mono:'IBM Plex Mono',monospace; --sans:'IBM Plex Sans',sans-serif;
   }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 14px; min-height: 100vh; padding: 20px 14px 40px; }
-  h1 { font-family: var(--mono); font-size: 17px; font-weight: 600; color: var(--c-dw); letter-spacing: .05em; margin-bottom: 3px; }
-  .subtitle { font-size: 11px; color: var(--muted); font-family: var(--mono); margin-bottom: 20px; }
-  .layout { display: grid; grid-template-columns: 310px 1fr; gap: 14px; }
-  @media(max-width:800px){ .layout { grid-template-columns: 1fr; } }
-  .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 18px; margin-bottom: 14px; }
-  .panel-title { font-family: var(--mono); font-size: 10px; font-weight: 600; color: var(--muted); letter-spacing: .12em; text-transform: uppercase; margin-bottom: 14px; padding-bottom: 9px; border-bottom: 1px solid var(--border); }
-  label { display: block; font-size: 11px; color: var(--muted); margin-bottom: 3px; margin-top: 10px; }
-  input[type=range] { width: 100%; accent-color: var(--c-dw); cursor: pointer; }
-  .val-display { font-family: var(--mono); font-size: 12px; color: var(--text); float: right; font-weight: 600; }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;padding:20px 14px 50px;}
+  h1{font-family:var(--mono);font-size:17px;font-weight:600;color:var(--c-dw);letter-spacing:.05em;margin-bottom:3px;}
+  .subtitle{font-size:11px;color:var(--muted);font-family:var(--mono);margin-bottom:20px;}
+  .layout{display:grid;grid-template-columns:310px 1fr;gap:14px;}
+  @media(max-width:820px){.layout{grid-template-columns:1fr;}}
+  .panel{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:18px;margin-bottom:14px;}
+  .pt{font-family:var(--mono);font-size:10px;font-weight:600;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;margin-bottom:14px;padding-bottom:9px;border-bottom:1px solid var(--border);}
+  label{display:block;font-size:11px;color:var(--muted);margin-bottom:3px;margin-top:10px;}
+  input[type=range]{width:100%;accent-color:var(--c-dw);cursor:pointer;}
+  .vd{font-family:var(--mono);font-size:12px;color:var(--text);float:right;font-weight:600;}
 
-  .method-cards { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 14px; }
-  @media(max-width:600px){ .method-cards { grid-template-columns: 1fr; } }
-  .mcard { border-radius: 8px; padding: 14px; border: 1px solid var(--border); position: relative; overflow: hidden; background: var(--panel); }
-  .mcard::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; }
-  .mcard.dw::before { background: var(--c-dw); }
-  .mcard.an::before { background: var(--c-an); }
-  .mcard.tc::before { background: var(--c-tc); }
-  .mcard-tag { font-family: var(--mono); font-size: 9px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 5px; }
-  .mcard.dw .mcard-tag { color: var(--c-dw); }
-  .mcard.an .mcard-tag { color: var(--c-an); }
-  .mcard.tc .mcard-tag { color: var(--c-tc); }
-  .mcard-name { font-size: 11px; font-weight: 600; color: var(--text); margin-bottom: 10px; line-height: 1.4; }
-  .mcard-q { font-family: var(--mono); font-size: 28px; font-weight: 600; line-height: 1; margin-bottom: 2px; }
-  .mcard.dw .mcard-q { color: var(--c-dw); }
-  .mcard.an .mcard-q { color: var(--c-an); }
-  .mcard.tc .mcard-q { color: var(--c-tc); }
-  .mcard-unit { font-family: var(--mono); font-size: 11px; color: var(--muted); margin-bottom: 10px; }
-  .mcard-detail { font-size: 11px; color: var(--muted); line-height: 1.5; }
-  .mcard-detail b { color: var(--text); }
-  .rec-badge { display:inline-block; margin-top:8px; padding:2px 8px; border-radius:20px; font-family:var(--mono); font-size:10px; font-weight:600; }
-  .rec-yes { background:rgba(0,212,170,.15); color:var(--c-dw); border:1px solid rgba(0,212,170,.3); }
-  .rec-cau { background:rgba(245,166,35,.15); color:var(--c-an); border:1px solid rgba(245,166,35,.3); }
-  .rec-no  { background:rgba(224,92,92,.15);  color:var(--c-tc); border:1px solid rgba(224,92,92,.3); }
+  /* CARDS */
+  .mcards{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px;}
+  @media(max-width:600px){.mcards{grid-template-columns:1fr;}}
+  .mc{border-radius:8px;padding:14px;border:1px solid var(--border);background:var(--panel);position:relative;overflow:hidden;}
+  .mc::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+  .mc.dw::before{background:var(--c-dw);} .mc.hw::before{background:var(--c-hw);} .mc.tc::before{background:var(--c-tc);}
+  .mc-tag{font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px;}
+  .mc.dw .mc-tag{color:var(--c-dw);} .mc.hw .mc-tag{color:var(--c-hw);} .mc.tc .mc-tag{color:var(--c-tc);}
+  .mc-name{font-size:11px;font-weight:600;color:var(--text);margin-bottom:10px;line-height:1.4;}
+  .mc-q{font-family:var(--mono);font-size:28px;font-weight:600;line-height:1;margin-bottom:2px;}
+  .mc.dw .mc-q{color:var(--c-dw);} .mc.hw .mc-q{color:var(--c-hw);} .mc.tc .mc-q{color:var(--c-tc);}
+  .mc-unit{font-family:var(--mono);font-size:11px;color:var(--muted);margin-bottom:8px;}
+  .mc-det{font-size:11px;color:var(--muted);line-height:1.5;} .mc-det b{color:var(--text);}
+  .rbadge{display:inline-block;margin-top:8px;padding:2px 8px;border-radius:20px;font-family:var(--mono);font-size:10px;font-weight:600;}
+  .r-yes{background:rgba(0,212,170,.15);color:var(--c-dw);border:1px solid rgba(0,212,170,.3);}
+  .r-cau{background:rgba(167,139,250,.15);color:var(--c-hw);border:1px solid rgba(167,139,250,.3);}
+  .r-no {background:rgba(224,92,92,.15); color:var(--c-tc);border:1px solid rgba(224,92,92,.3);}
 
-  .kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
-  .kpi { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 10px; }
-  .kpi-label { font-size: 9px; color: var(--muted); font-family: var(--mono); letter-spacing: .08em; text-transform: uppercase; margin-bottom: 3px; }
-  .kpi-val { font-family: var(--mono); font-size: 15px; font-weight: 600; color: var(--text); }
-  .kpi-val.ok { color: var(--c-dw); } .kpi-val.warn { color: var(--c-an); } .kpi-val.danger { color: var(--c-tc); }
+  /* KPIs */
+  .kgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
+  .kpi{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:10px;}
+  .kl{font-size:9px;color:var(--muted);font-family:var(--mono);letter-spacing:.08em;text-transform:uppercase;margin-bottom:3px;}
+  .kv{font-family:var(--mono);font-size:15px;font-weight:600;color:var(--text);}
+  .kv.ok{color:var(--c-dw);} .kv.warn{color:#f5a623;} .kv.danger{color:var(--c-tc);}
 
-  .loss-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:3px; font-size:11px; }
-  .loss-label { color: var(--muted); } .loss-val { font-family: var(--mono); color: var(--text); }
-  .bar-bg { height:5px; background:var(--border); border-radius:3px; margin-bottom:7px; overflow:hidden; }
-  .bar-fill { height:100%; border-radius:3px; transition:width .3s; }
+  /* BARRAS */
+  .lrow{display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;font-size:11px;}
+  .ll{color:var(--muted);} .lv{font-family:var(--mono);color:var(--text);}
+  .bbg{height:5px;background:var(--border);border-radius:3px;margin-bottom:7px;overflow:hidden;}
+  .bf{height:100%;border-radius:3px;transition:width .3s;}
 
-  .div-row { padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
-  .div-head { display:flex; align-items:center; gap:8px; margin-bottom:4px; }
-  .div-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
-  .div-title { font-weight:600; color:var(--text); font-size:12px; }
-  .div-body { color: var(--muted); line-height: 1.5; padding-left: 16px; }
+  /* INCERTEZAS */
+  .irow{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);font-size:12px;}
+  .idot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:3px;}
+  .iname{color:var(--text);font-weight:600;margin-bottom:2px;}
+  .idesc{color:var(--muted);line-height:1.5;}
+  .iimp{font-family:var(--mono);font-size:11px;font-weight:600;margin-top:2px;}
 
-  .regime-badge { display:inline-block; padding:3px 10px; border-radius:20px; font-family:var(--mono); font-size:11px; font-weight:600; margin-bottom:12px; }
-  .turb { background:rgba(0,212,170,.15); color:var(--c-dw); border:1px solid rgba(0,212,170,.3); }
-  .lam  { background:rgba(245,166,35,.15); color:var(--c-an); border:1px solid rgba(245,166,35,.3); }
-  canvas { width:100%; display:block; }
-  .note { font-size:11px; color:var(--muted); line-height:1.6; padding:9px 11px; background:var(--bg); border-left:3px solid var(--border); border-radius:0 4px 4px 0; margin-top:10px; }
-  .formula { font-family: var(--mono); font-size: 11px; color: var(--muted); background: var(--bg); border: 1px solid var(--border); border-radius: 5px; padding: 8px 10px; margin-top: 6px; line-height: 1.8; }
-  .formula .hi { color: var(--text); }
-  .formula .err { color: var(--c-tc); }
+  /* CONF */
+  .conf-bg{height:14px;background:var(--border);border-radius:7px;overflow:hidden;margin-top:6px;}
+  .conf-fill{height:100%;border-radius:7px;background:linear-gradient(90deg,var(--c-tc),#f5a623,var(--c-dw));transition:width .4s;}
+  .conf-pct{font-family:var(--mono);font-size:22px;font-weight:600;color:var(--c-dw);text-align:center;margin-top:6px;}
+  .conf-range{font-family:var(--mono);font-size:13px;color:#f5a623;text-align:center;margin-top:2px;}
+
+  /* DIVERGÊNCIA */
+  .drow{padding:10px 0;border-bottom:1px solid var(--border);font-size:12px;}
+  .dhead{display:flex;align-items:center;gap:8px;margin-bottom:4px;}
+  .ddot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+  .dtitle{font-weight:600;color:var(--text);}
+  .dbody{color:var(--muted);line-height:1.5;padding-left:16px;}
+
+  /* OUTROS */
+  .rbadge2{display:inline-block;padding:3px 10px;border-radius:20px;font-family:var(--mono);font-size:11px;font-weight:600;margin-bottom:12px;}
+  .turb{background:rgba(0,212,170,.15);color:var(--c-dw);border:1px solid rgba(0,212,170,.3);}
+  .lam{background:rgba(245,166,35,.15);color:#f5a623;border:1px solid rgba(245,166,35,.3);}
+  canvas{width:100%;display:block;}
+  .note{font-size:11px;color:var(--muted);line-height:1.6;padding:9px 11px;background:var(--bg);border-left:3px solid var(--border);border-radius:0 4px 4px 0;margin-top:10px;}
+  .formula{font-family:var(--mono);font-size:11px;color:var(--muted);background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:8px 10px;margin-top:6px;line-height:1.8;}
+  .formula .hi{color:var(--text);} .formula .err{color:var(--c-tc);}
+  .sec-title{font-size:11px;font-weight:600;margin-top:10px;margin-bottom:0;}
 </style>
 </head>
 <body>
 
 <h1>⚙ ESCOAMENTO GRAVITACIONAL — COMPARATIVO DE MÉTODOS</h1>
-<div class="subtitle">// Darcy-Weisbach  ·  Azevedo Netto (Scimemi)  ·  Torricelli + Cd  ·  Alumínio ε = 0,0015 mm</div>
+<div class="subtitle">// Darcy-Weisbach  ·  Hazen-Williams  ·  Torricelli + Cd  ·  Alumínio ε = 0,0015 mm</div>
 
 <div class="layout">
 
-  <!-- ══ PARÂMETROS ══ -->
-  <div>
-    <div class="panel">
-      <div class="panel-title">// Parâmetros de entrada</div>
-      <label>Altura do reservatório H <span class="val-display" id="lbl-h">9,7 m</span></label>
-      <input type="range" id="sl-h" min="1" max="30" step="0.1" value="9.7">
-      <label>Diâmetro interno D <span class="val-display" id="lbl-d">150 mm</span></label>
-      <input type="range" id="sl-d" min="50" max="300" step="5" value="150">
-      <label>Comprimento do duto L <span class="val-display" id="lbl-l">430 m</span></label>
-      <input type="range" id="sl-l" min="10" max="1000" step="10" value="430">
-      <label>Coef. descarga Cd (Torricelli) <span class="val-display" id="lbl-cd">0,82</span></label>
-      <input type="range" id="sl-cd" min="0.50" max="1.00" step="0.01" value="0.82">
-      <label>Coef. K Scimemi (Azevedo Netto) <span class="val-display" id="lbl-k">63</span></label>
-      <input type="range" id="sl-k" min="30" max="100" step="1" value="63">
-      <label>Rugosidade ε (alumínio) <span class="val-display" id="lbl-e">0,0015 mm</span></label>
-      <input type="range" id="sl-e" min="0.001" max="2.0" step="0.001" value="0.0015">
-    </div>
-
-    <div class="panel">
-      <div class="panel-title">// Esquema do sistema</div>
-      <canvas id="schema" height="145"></canvas>
-    </div>
-
-    <div class="panel">
-      <div class="panel-title">// Perdas de carga — Darcy-Weisbach</div>
-      <div id="loss-bars"></div>
-      <div class="note">Perdas singulares: entrada borda viva (K=0,5) + <span id="n-emendas">—</span> emendas de barra (K=0,10 cada) + saída livre (K=1,0).</div>
-    </div>
-
-    <div class="panel">
-      <div class="panel-title">// Fórmulas</div>
-      <div style="font-size:11px;color:var(--c-dw);margin-top:4px;font-weight:600;">① Darcy-Weisbach + Colebrook-White</div>
-      <div class="formula">
-        <span class="hi">hf = f·(L/D)·V²/2g + ΣK·V²/2g</span><br>
-        <span class="hi">1/√f = −2·log(ε/3,7D + 2,51/Re√f)</span>
-      </div>
-      <div style="font-size:11px;color:var(--c-an);margin-top:10px;font-weight:600;">② Scimemi / Azevedo Netto</div>
-      <div class="formula">
-        <span class="hi">V = K · R^(2/3) · J^(1/2)</span><br>
-        R = D/4 · J = H/L · K = <span id="k-disp">63</span><br>
-        <span class="err">⚠ ignora singulares; K empírico</span>
-      </div>
-      <div style="font-size:11px;color:var(--c-tc);margin-top:10px;font-weight:600;">③ Torricelli × Cd</div>
-      <div class="formula">
-        <span class="hi">V = Cd · √(2·g·H)</span><br>
-        Cd = <span id="cd-disp">0,82</span><br>
-        <span class="err">⚠ ignora atrito no duto (L não entra)</span>
-      </div>
-    </div>
+<!-- ══════════ COLUNA ESQUERDA ══════════ -->
+<div>
+  <div class="panel">
+    <div class="pt">// Parâmetros de entrada</div>
+    <label>Altura do reservatório H <span class="vd" id="lbl-h">9,7 m</span></label>
+    <input type="range" id="sl-h" min="1" max="30" step="0.1" value="9.7">
+    <label>Diâmetro interno D <span class="vd" id="lbl-d">150 mm</span></label>
+    <input type="range" id="sl-d" min="50" max="300" step="5" value="150">
+    <label>Comprimento do duto L <span class="vd" id="lbl-l">430 m</span></label>
+    <input type="range" id="sl-l" min="10" max="1000" step="10" value="430">
+    <label>Coef. Hazen-Williams C <span class="vd" id="lbl-c">130</span></label>
+    <input type="range" id="sl-c" min="60" max="150" step="1" value="130">
+    <label>Coef. descarga Cd (Torricelli) <span class="vd" id="lbl-cd">0,82</span></label>
+    <input type="range" id="sl-cd" min="0.50" max="1.00" step="0.01" value="0.82">
+    <label>Rugosidade ε — alumínio <span class="vd" id="lbl-e">0,0015 mm</span></label>
+    <input type="range" id="sl-e" min="0.001" max="2.0" step="0.001" value="0.0015">
   </div>
 
-  <!-- ══ RESULTADOS ══ -->
-  <div>
+  <div class="panel">
+    <div class="pt">// Esquema do sistema</div>
+    <canvas id="schema" height="145"></canvas>
+  </div>
 
-    <div class="method-cards">
-      <div class="mcard dw">
-        <div class="mcard-tag">Método ①</div>
-        <div class="mcard-name">Darcy-Weisbach<br>+ Colebrook-White</div>
-        <div class="mcard-q" id="q-dw">—</div>
-        <div class="mcard-unit">m³/h</div>
-        <div class="mcard-detail" id="det-dw">—</div>
-        <div class="rec-badge rec-yes">✓ Recomendado</div>
-      </div>
-      <div class="mcard an">
-        <div class="mcard-tag">Método ②</div>
-        <div class="mcard-name">Scimemi<br>(Azevedo Netto)</div>
-        <div class="mcard-q" id="q-an">—</div>
-        <div class="mcard-unit">m³/h</div>
-        <div class="mcard-detail" id="det-an">—</div>
-        <div class="rec-badge rec-cau">⚠ Empírico</div>
-      </div>
-      <div class="mcard tc">
-        <div class="mcard-tag">Método ③</div>
-        <div class="mcard-name">Torricelli<br>× Cd</div>
-        <div class="mcard-q" id="q-tc">—</div>
-        <div class="mcard-unit">m³/h</div>
-        <div class="mcard-detail" id="det-tc">—</div>
-        <div class="rec-badge rec-no">✗ Modelo orifício</div>
-      </div>
+  <div class="panel">
+    <div class="pt">// Perdas de carga — Darcy-Weisbach</div>
+    <div id="loss-bars"></div>
+    <div class="note">Singulares: entrada borda viva (K=0,5) + <span id="n-em">—</span> emendas de barra (K=0,10 cada) + saída livre (K=1,0).</div>
+  </div>
+
+  <div class="panel">
+    <div class="pt">// Fórmulas</div>
+
+    <div class="sec-title" style="color:var(--c-dw);">① Darcy-Weisbach + Colebrook-White</div>
+    <div class="formula">
+      <span class="hi">hf = f·(L/D)·V²/2g + ΣK·V²/2g</span><br>
+      <span class="hi">1/√f = −2·log(ε/3,7D + 2,51/Re√f)</span>
     </div>
 
-    <div class="panel">
-      <div class="panel-title">// Detalhes hidráulicos — Darcy-Weisbach</div>
-      <div id="regime-badge"></div>
-      <div class="kpi-grid" id="kpi-grid"></div>
+    <div class="sec-title" style="color:var(--c-hw);margin-top:12px;">② Hazen-Williams</div>
+    <div class="formula">
+      <span class="hi">V = 0,8492 · C · R^0,63 · S^0,54</span><br>
+      R = D/4 (raio hidr.) · S = hf/L<br>
+      Resolvido para S = H/L → <span class="hi">Q = A · V</span><br>
+      C = <span id="c-disp">130</span> (alumínio liso)<br>
+      <span class="err">⚠ empírico; ignora singulares</span>
     </div>
 
-    <div class="panel">
-      <div class="panel-title">// Sensibilidade ao comprimento L — 3 métodos</div>
-      <canvas id="chart-L" height="195"></canvas>
-      <div style="margin-top:8px;display:flex;gap:16px;flex-wrap:wrap;font-size:11px;font-family:var(--mono);">
-        <span style="color:var(--c-dw);">● Darcy-Weisbach</span>
-        <span style="color:var(--c-an);">● Azevedo Netto</span>
-        <span style="color:var(--c-tc);">● Torricelli (Cd)</span>
-      </div>
-      <div class="note">Torricelli é linha horizontal — não depende de L. Azevedo Netto cai lentamente (∝ 1/√L). Darcy-Weisbach cai mais rápido pois modela o atrito real: quanto mais longo, mais energia dissipada.</div>
+    <div class="sec-title" style="color:var(--c-tc);margin-top:12px;">③ Torricelli × Cd</div>
+    <div class="formula">
+      <span class="hi">V = Cd · √(2·g·H)</span><br>
+      Cd = <span id="cd-disp">0,82</span><br>
+      <span class="err">⚠ modelo orifício — L não entra</span>
     </div>
 
-    <div class="panel">
-      <div class="panel-title">// Sensibilidade ao diâmetro D — 3 métodos</div>
-      <canvas id="chart-D" height="195"></canvas>
-      <div style="margin-top:8px;display:flex;gap:16px;flex-wrap:wrap;font-size:11px;font-family:var(--mono);">
-        <span style="color:var(--c-dw);">● Darcy-Weisbach</span>
-        <span style="color:var(--c-an);">● Azevedo Netto</span>
-        <span style="color:var(--c-tc);">● Torricelli (Cd)</span>
-      </div>
-      <div class="note">Todos crescem com D, mas Torricelli só ganha área (∝ D²). D-W e A-N ganham área E menor atrito, crescendo mais rápido. Os 3 convergem quando L→0.</div>
+    <div class="note" style="margin-top:12px;">
+      Referência C (Hazen-Williams): ferro fundido novo 130, PVC 140–150, alumínio liso 130–140, aço galvanizado 120, ferro fundido envelhecido 80–100.
     </div>
-
-    <div class="panel">
-      <div class="panel-title">// Por que os métodos divergem?</div>
-      <div id="div-section"></div>
-      <div class="note" id="conf-note-text"></div>
-    </div>
-
   </div>
 </div>
 
+<!-- ══════════ COLUNA DIREITA ══════════ -->
+<div>
+
+  <!-- CARDS -->
+  <div class="mcards">
+    <div class="mc dw">
+      <div class="mc-tag">Método ①</div>
+      <div class="mc-name">Darcy-Weisbach<br>+ Colebrook-White</div>
+      <div class="mc-q" id="q-dw">—</div>
+      <div class="mc-unit">m³/h</div>
+      <div class="mc-det" id="det-dw">—</div>
+      <div class="rbadge r-yes">✓ Recomendado</div>
+    </div>
+    <div class="mc hw">
+      <div class="mc-tag">Método ②</div>
+      <div class="mc-name">Hazen-Williams<br>(C empírico)</div>
+      <div class="mc-q" id="q-hw">—</div>
+      <div class="mc-unit">m³/h</div>
+      <div class="mc-det" id="det-hw">—</div>
+      <div class="rbadge r-cau">⚠ Empírico</div>
+    </div>
+    <div class="mc tc">
+      <div class="mc-tag">Método ③</div>
+      <div class="mc-name">Torricelli<br>× Cd</div>
+      <div class="mc-q" id="q-tc">—</div>
+      <div class="mc-unit">m³/h</div>
+      <div class="mc-det" id="det-tc">—</div>
+      <div class="rbadge r-no">✗ Modelo orifício</div>
+    </div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="panel">
+    <div class="pt">// Detalhes hidráulicos — Darcy-Weisbach</div>
+    <div id="regime-badge"></div>
+    <div class="kgrid" id="kpi-grid"></div>
+  </div>
+
+  <!-- GRÁFICO L -->
+  <div class="panel">
+    <div class="pt">// Sensibilidade ao comprimento L — 3 métodos</div>
+    <canvas id="chart-L" height="195"></canvas>
+    <div style="margin-top:8px;display:flex;gap:16px;flex-wrap:wrap;font-size:11px;font-family:var(--mono);">
+      <span style="color:var(--c-dw);">● Darcy-Weisbach</span>
+      <span style="color:var(--c-hw);">● Hazen-Williams</span>
+      <span style="color:var(--c-tc);">● Torricelli (Cd)</span>
+    </div>
+    <div class="note">Torricelli é linha horizontal — não depende de L. H-W cai com ∝1/L^0,54. D-W cai mais acentuadamente pois calcula o atrito real iterativamente.</div>
+  </div>
+
+  <!-- GRÁFICO D -->
+  <div class="panel">
+    <div class="pt">// Sensibilidade ao diâmetro D — 3 métodos</div>
+    <canvas id="chart-D" height="195"></canvas>
+    <div style="margin-top:8px;display:flex;gap:16px;flex-wrap:wrap;font-size:11px;font-family:var(--mono);">
+      <span style="color:var(--c-dw);">● Darcy-Weisbach</span>
+      <span style="color:var(--c-hw);">● Hazen-Williams</span>
+      <span style="color:var(--c-tc);">● Torricelli (Cd)</span>
+    </div>
+    <div class="note">Torricelli cresce apenas com área (∝D²). D-W e H-W crescem mais rápido: maior D reduz atrito E aumenta área.</div>
+  </div>
+
+  <!-- DIVERGÊNCIAS -->
+  <div class="panel">
+    <div class="pt">// Por que os métodos divergem?</div>
+    <div id="div-section"></div>
+    <div class="note" id="div-note"></div>
+  </div>
+
+  <!-- INCERTEZAS -->
+  <div class="panel">
+    <div class="pt">// Incertezas e confiabilidade do cálculo</div>
+    <div id="incert-list"></div>
+
+    <div style="margin-top:18px;">
+      <div style="font-size:12px;color:var(--muted);font-family:var(--mono);margin-bottom:6px;">Confiabilidade estimada — Darcy-Weisbach</div>
+      <div class="conf-bg"><div class="conf-fill" id="conf-bar" style="width:65%"></div></div>
+      <div class="conf-pct" id="conf-pct">65 %</div>
+      <div class="conf-range" id="conf-range">Vazão provável: — a — m³/h</div>
+      <div class="note" id="conf-note"></div>
+    </div>
+  </div>
+
+</div><!-- fim col direita -->
+</div><!-- fim layout -->
+
 <script>
-const RHO=998, NU=1.004e-6, G=9.81;
+const G=9.81, NU=1.004e-6;
 const K_ENT=0.5, K_SAI=1.0, K_EM=0.10;
+function nEm(L){return Math.max(1,Math.round(L/6));}
+function fmt(v,d=1){return v.toFixed(d).replace('.',',');}
 
-function nEm(L){ return Math.max(1, Math.round(L/6)); }
-function fmt(v,d=1){ return v.toFixed(d).replace('.',','); }
-
+// ── DARCY-WEISBACH ──────────────────────────────────────────────
 function calcDW(H,D_mm,L,eps){
   const D=D_mm/1000, A=Math.PI*D*D/4, eD=(eps/1000)/D;
   const nE=nEm(L), Ks=K_ENT+K_SAI+nE*K_EM;
-  let V=Math.sqrt(2*G*H)*0.25;
+  let V=Math.sqrt(2*G*H)*0.2;
   for(let i=0;i<300;i++){
     const Re=Math.max(V*D/NU,1);
     let f=Re<2300?64/Re:0.02;
-    if(Re>=2300){for(let j=0;j<50;j++){const r=-2*Math.log10(eD/3.7+2.51/(Re*Math.sqrt(f)));const fn=1/(r*r);if(Math.abs(fn-f)<1e-10){f=fn;break;}f=fn;}}
+    if(Re>=2300){for(let j=0;j<60;j++){const r=-2*Math.log10(eD/3.7+2.51/(Re*Math.sqrt(f)));const fn=1/(r*r);if(Math.abs(fn-f)<1e-11){f=fn;break;}f=fn;}}
     const Vn=Math.sqrt(2*G*H/(f*L/D+Ks));
     if(Math.abs(Vn-V)<1e-9){V=Vn;break;}
     V=0.5*V+0.5*Vn;
   }
   const Re=V*D/NU; let f=Re<2300?64/Re:0.02;
-  if(Re>=2300){for(let j=0;j<50;j++){const r=-2*Math.log10(eD/3.7+2.51/(Re*Math.sqrt(f)));const fn=1/(r*r);if(Math.abs(fn-f)<1e-10){f=fn;break;}f=fn;}}
-  const Q=A*V, hfd=f*(L/D)*V*V/(2*G), hfs=(K_ENT+K_SAI+nE*K_EM)*V*V/(2*G);
+  if(Re>=2300){for(let j=0;j<60;j++){const r=-2*Math.log10(eD/3.7+2.51/(Re*Math.sqrt(f)));const fn=1/(r*r);if(Math.abs(fn-f)<1e-11){f=fn;break;}f=fn;}}
+  const Q=A*V, hfd=f*(L/D)*V*V/(2*G), hfs=Ks*V*V/(2*G);
   return{Q_m3h:Q*3600,Q_lpm:Q*60000,V,Re,f,hfd,hfs,Ks,nE,regime:Re<2300?'laminar':Re<4000?'transição':'turbulento'};
 }
 
-function calcAN(H,D_mm,L,K){
-  const D=D_mm/1000,A=Math.PI*D*D/4,R=D/4,J=H/L;
-  const V=K*Math.pow(R,2/3)*Math.pow(J,0.5);
-  return{Q_m3h:A*V*3600,Q_lpm:A*V*60000,V,J,R};
+// ── HAZEN-WILLIAMS ───────────────────────────────────────────────
+// Fórmula SI: V = 0,8492 · C · R^0,63 · S^0,54
+// S = J = H/L (gradiente disponível — ignora singulares)
+// R = D/4 (raio hidráulico, seção circular plena)
+function calcHW(H,D_mm,L,C){
+  const D=D_mm/1000, A=Math.PI*D*D/4;
+  const R=D/4, S=H/L;
+  const V=0.8492*C*Math.pow(R,0.63)*Math.pow(S,0.54);
+  const Q=A*V;
+  return{Q_m3h:Q*3600,Q_lpm:Q*60000,V,S,R};
 }
 
+// ── TORRICELLI ───────────────────────────────────────────────────
 function calcTC(H,D_mm,Cd){
-  const D=D_mm/1000,A=Math.PI*D*D/4,V=Cd*Math.sqrt(2*G*H);
+  const D=D_mm/1000, A=Math.PI*D*D/4, V=Cd*Math.sqrt(2*G*H);
   return{Q_m3h:A*V*3600,Q_lpm:A*V*60000,V};
 }
 
+// ── SLIDERS ──────────────────────────────────────────────────────
 const slH=document.getElementById('sl-h'),slD=document.getElementById('sl-d'),
-      slL=document.getElementById('sl-l'),slCd=document.getElementById('sl-cd'),
-      slK=document.getElementById('sl-k'),slE=document.getElementById('sl-e');
+      slL=document.getElementById('sl-l'),slC=document.getElementById('sl-c'),
+      slCd=document.getElementById('sl-cd'),slE=document.getElementById('sl-e');
 
 function update(){
-  const H=+slH.value,D=+slD.value,L=+slL.value,Cd=+slCd.value,K=+slK.value,eps=+slE.value;
+  const H=+slH.value, D=+slD.value, L=+slL.value,
+        C=+slC.value, Cd=+slCd.value, eps=+slE.value;
+
   document.getElementById('lbl-h').textContent=fmt(H,1)+' m';
   document.getElementById('lbl-d').textContent=fmt(D,0)+' mm';
   document.getElementById('lbl-l').textContent=fmt(L,0)+' m';
+  document.getElementById('lbl-c').textContent=fmt(C,0);
   document.getElementById('lbl-cd').textContent=fmt(Cd,2);
-  document.getElementById('lbl-k').textContent=fmt(K,0);
   document.getElementById('lbl-e').textContent=eps.toFixed(4)+' mm';
-  document.getElementById('k-disp').textContent=fmt(K,0);
+  document.getElementById('c-disp').textContent=fmt(C,0);
   document.getElementById('cd-disp').textContent=fmt(Cd,2);
 
-  const dw=calcDW(H,D,L,eps), an=calcAN(H,D,L,K), tc=calcTC(H,D,Cd);
+  const dw=calcDW(H,D,L,eps), hw=calcHW(H,D,L,C), tc=calcTC(H,D,Cd);
 
+  // ── Cards
   document.getElementById('q-dw').textContent=fmt(dw.Q_m3h,2);
-  document.getElementById('q-an').textContent=fmt(an.Q_m3h,2);
+  document.getElementById('q-hw').textContent=fmt(hw.Q_m3h,2);
   document.getElementById('q-tc').textContent=fmt(tc.Q_m3h,2);
 
   document.getElementById('det-dw').innerHTML=`<b>${fmt(dw.Q_lpm,0)}</b> L/min · V=<b>${fmt(dw.V,3)}</b> m/s<br>Re=<b>${Math.round(dw.Re).toLocaleString('pt-BR')}</b> · f=<b>${dw.f.toFixed(5)}</b>`;
-  document.getElementById('det-an').innerHTML=`<b>${fmt(an.Q_lpm,0)}</b> L/min · V=<b>${fmt(an.V,3)}</b> m/s<br>J=<b>${an.J.toFixed(5)}</b> · R=<b>${fmt(an.R*1000,1)}</b> mm`;
+  document.getElementById('det-hw').innerHTML=`<b>${fmt(hw.Q_lpm,0)}</b> L/min · V=<b>${fmt(hw.V,3)}</b> m/s<br>C=<b>${C}</b> · S=<b>${hw.S.toFixed(5)}</b> · R=<b>${fmt(hw.R*1000,1)}</b>mm`;
   document.getElementById('det-tc').innerHTML=`<b>${fmt(tc.Q_lpm,0)}</b> L/min · V=<b>${fmt(tc.V,3)}</b> m/s<br>Cd=<b>${fmt(Cd,2)}</b> · √2gH=<b>${fmt(Math.sqrt(2*G*H),3)}</b> m/s`;
 
+  // ── Regime
   const bc=dw.regime==='laminar'?'lam':'turb';
-  document.getElementById('regime-badge').innerHTML=`<span class="regime-badge ${bc}">Regime D-W: ${dw.regime.toUpperCase()} · Re = ${Math.round(dw.Re).toLocaleString('pt-BR')}</span>`;
+  document.getElementById('regime-badge').innerHTML=`<span class="rbadge2 ${bc}">Regime D-W: ${dw.regime.toUpperCase()} · Re = ${Math.round(dw.Re).toLocaleString('pt-BR')}</span>`;
 
+  // ── KPIs
+  const rHW=hw.Q_m3h/dw.Q_m3h, rTC=tc.Q_m3h/dw.Q_m3h;
   document.getElementById('kpi-grid').innerHTML=`
-    <div class="kpi"><div class="kpi-label">Vazão D-W (L/min)</div><div class="kpi-val ok">${fmt(dw.Q_lpm,1)}</div></div>
-    <div class="kpi"><div class="kpi-label">Velocidade D-W</div><div class="kpi-val ${dw.V>3?'warn':''}">${fmt(dw.V,3)} m/s</div></div>
-    <div class="kpi"><div class="kpi-label">Perda distribuída</div><div class="kpi-val warn">${fmt(dw.hfd,2)} m</div></div>
-    <div class="kpi"><div class="kpi-label">Perda singular</div><div class="kpi-val">${fmt(dw.hfs,2)} m</div></div>
-    <div class="kpi"><div class="kpi-label">Razão AN / D-W</div><div class="kpi-val ${an.Q_m3h/dw.Q_m3h>2?'danger':'warn'}">${fmt(an.Q_m3h/dw.Q_m3h,2)}×</div></div>
-    <div class="kpi"><div class="kpi-label">Razão Torr / D-W</div><div class="kpi-val ${tc.Q_m3h/dw.Q_m3h>2?'danger':'warn'}">${fmt(tc.Q_m3h/dw.Q_m3h,2)}×</div></div>`;
+    <div class="kpi"><div class="kl">Vazão D-W (L/min)</div><div class="kv ok">${fmt(dw.Q_lpm,1)}</div></div>
+    <div class="kpi"><div class="kl">Velocidade D-W</div><div class="kv ${dw.V>3?'warn':''}">${fmt(dw.V,3)} m/s</div></div>
+    <div class="kpi"><div class="kl">Perda distribuída</div><div class="kv warn">${fmt(dw.hfd,2)} m (${(dw.hfd/H*100).toFixed(0)}% de H)</div></div>
+    <div class="kpi"><div class="kl">Perda singular</div><div class="kv">${fmt(dw.hfs,2)} m</div></div>
+    <div class="kpi"><div class="kl">Razão H-W / D-W</div><div class="kv ${rHW>1.3?'danger':rHW>1.1?'warn':''}">${fmt(rHW,2)}×</div></div>
+    <div class="kpi"><div class="kl">Razão Torr / D-W</div><div class="kv ${rTC>1.5?'danger':'warn'}">${fmt(rTC,2)}×</div></div>`;
 
-  document.getElementById('n-emendas').textContent=dw.nE;
+  // ── Emendas
+  document.getElementById('n-em').textContent=dw.nE;
 
+  // ── Barras perda
   const tot=dw.hfd+dw.hfs;
   document.getElementById('loss-bars').innerHTML=
     bRow('Perda distribuída (atrito)',+(dw.hfd/tot*100).toFixed(1),'var(--c-dw)')+
-    bRow('Emendas ×'+dw.nE,+(dw.hfs*dw.nE*K_EM/dw.Ks/tot*100).toFixed(1),'var(--c-an)')+
+    bRow('Emendas ×'+dw.nE,+(dw.hfs*dw.nE*K_EM/dw.Ks/tot*100).toFixed(1),'#f5a623')+
     bRow('Saída livre',+(dw.hfs*K_SAI/dw.Ks/tot*100).toFixed(1),'var(--c-tc)')+
     bRow('Entrada borda viva',+(dw.hfs*K_ENT/dw.Ks/tot*100).toFixed(1),'#9b8cff');
 
-  renderDiv(dw,an,tc,H,D,L,K);
-  drawChartL(H,D,L,eps,Cd,K);
-  drawChartD(H,D,L,eps,Cd,K);
+  // ── Divergências
+  renderDiv(dw,hw,tc,H,D,L,C);
+
+  // ── Incertezas
+  renderIncert(dw);
+
+  // ── Gráficos
+  drawChartL(H,D,L,eps,Cd,C);
+  drawChartD(H,D,L,eps,Cd,C);
   drawSchematic(H,D,L);
 }
 
 function bRow(label,pct,color){
-  return `<div><div class="loss-row"><span class="loss-label">${label}</span><span class="loss-val">${pct}%</span></div><div class="bar-bg"><div class="bar-fill" style="width:${pct}%;background:${color}"></div></div></div>`;
+  return `<div><div class="lrow"><span class="ll">${label}</span><span class="lv">${pct}%</span></div><div class="bbg"><div class="bf" style="width:${pct}%;background:${color}"></div></div></div>`;
 }
 
-function renderDiv(dw,an,tc,H,D,L,K){
-  const rAN=(an.Q_m3h/dw.Q_m3h), rTC=(tc.Q_m3h/dw.Q_m3h);
-  const pAN=((rAN-1)*100).toFixed(0), pTC=((rTC-1)*100).toFixed(0);
+// ── DIVERGÊNCIAS ─────────────────────────────────────────────────
+function renderDiv(dw,hw,tc,H,D,L,C){
+  const rHW=((hw.Q_m3h/dw.Q_m3h-1)*100).toFixed(0);
+  const rTC=((tc.Q_m3h/dw.Q_m3h-1)*100).toFixed(0);
   const pLoss=(dw.hfd/(dw.hfd+dw.hfs)*100).toFixed(1);
   const itens=[
-    {cor:'var(--c-tc)',t:`Torricelli superestima em +${pTC}%`,
-     b:`V=Cd·√(2gH) converte TODA a altura H em velocidade, ignorando os ${fmt(dw.hfd,1)} m consumidos por atrito ao longo de ${L} m. É um modelo de orifício (L=0). Para dutos longos, o comprimento não entra na equação — este é o erro físico fundamental. Independentemente do Cd escolhido, o modelo não converge com a realidade de dutos compridos.`},
-    {cor:'var(--c-an)',t:`Azevedo Netto / Scimemi superestima em +${pAN}%`,
-     b:`V=K·R^(2/3)·J^(1/2) foi calibrada para redes urbanas tipicamente mais curtas. O coeficiente K=${K} engloba atrito de forma empírica, mas não considera perdas singulares de entrada/saída nem emendas, e foi calibrado para outros materiais/condições. Com J=${an.J.toFixed(5)} m/m muito baixo e L=${L} m, o K padrão do livro superestima. Para ajustar ao D-W, o K equivalente seria ≈${fmt(K/rAN,0)}.`},
-    {cor:'var(--c-dw)',t:`Darcy-Weisbach: ${pLoss}% da altura dissipada em atrito`,
-     b:`Com J=H/L=${fmt(H,1)}/${L}=${(H/L).toFixed(5)} m/m, quase toda a energia disponível é consumida por atrito distribuído. A velocidade de ${fmt(dw.V,3)} m/s resulta do equilíbrio entre carga disponível e perdas, calculado por iteração com Colebrook-White. Único método que modela corretamente esse sistema.`},
+    {cor:'var(--c-tc)',t:`Torricelli superestima em +${rTC}%`,
+     b:`V=Cd·√(2gH) converte TODA a altura H em velocidade, ignorando ${fmt(dw.hfd,1)} m consumidos por atrito ao longo de ${L} m. É fisicamente um modelo de orifício (comprimento zero). O valor de Cd corretamente estimado para este sistema seria Cd≈${fmt(Math.sqrt(dw.V*dw.V/(2*G*H)),3)} — o que mostra que Torricelli pode ser "corrigido" após o fato, mas não prediz a vazão sem conhecer o sistema.`},
+    {cor:'var(--c-hw)',t:`Hazen-Williams superestima em +${rHW}%`,
+     b:`V=0,8492·C·R^0,63·S^0,54 usa gradiente total S=H/L sem descontar perdas singulares (entrada, saída, emendas). Para dutos curtos isto é aceitável, mas aqui as singulares representam ${fmt(dw.hfs/(dw.hfd+dw.hfs)*100,1)}% das perdas totais. Além disso, C=${C} pode não representar o alumínio industrial com emendas a cada 6 m. H-W é mais preciso que Torricelli pois pelo menos depende de L, mas não fecha energia completa.`},
+    {cor:'var(--c-dw)',t:`Darcy-Weisbach: ${pLoss}% da altura em atrito distribuído`,
+     b:`Com J=H/L=${fmt(H,1)}/${L}=${(H/L).toFixed(5)} m/m, quase toda a carga disponível é dissipada em atrito. A velocidade de equilíbrio (${fmt(dw.V,3)} m/s) é determinada iterativamente por Colebrook-White. Único método que fecha o balanço de energia completo, incluindo singulares, rugosidade real e regime de escoamento.`},
   ];
   let html='';
-  itens.forEach(it=>{ html+=`<div class="div-row"><div class="div-head"><div class="div-dot" style="background:${it.cor}"></div><div class="div-title">${it.t}</div></div><div class="div-body">${it.b}</div></div>`; });
+  itens.forEach(it=>{html+=`<div class="drow"><div class="dhead"><div class="ddot" style="background:${it.cor}"></div><div class="dtitle">${it.t}</div></div><div class="dbody">${it.b}</div></div>`;});
   document.getElementById('div-section').innerHTML=html;
-  document.getElementById('conf-note-text').textContent=
-    `Recomendação final: use Darcy-Weisbach como referência para este sistema. Para calibrar Azevedo Netto a este caso, K deveria ser ≈${fmt(K/rAN,0)} (vs ${K} padrão). Torricelli não é adequado para dutos longos com qualquer Cd.`;
+  document.getElementById('div-note').textContent=
+    `Para calibrar H-W a este sistema, C equivalente seria ≈${fmt(C/(1+parseFloat(rHW)/100),0)} (vs ${C} padrão). Use D-W como referência e H-W como verificação qualitativa.`;
 }
 
+// ── INCERTEZAS ────────────────────────────────────────────────────
+function renderIncert(dw){
+  const Q=dw.Q_m3h;
+  const itens=[
+    {cor:'#e05c5c',n:'Diâmetro interno real',
+     d:'Tubo alumínio "6 pol" pode ter DI variando ±3–5 mm conforme série (SCH 10, 20, 40…). Q ∝ D^2,63: erro de +3 mm em D=150 mm → +5% em Q; erro de −5 mm → −8% em Q.',
+     imp:'±5–10% na vazão'},
+    {cor:'#f5a623',n:'Tipo e qualidade das emendas',
+     d:`${dw.nE} uniões ao longo do traçado. K=0,10 assumido para união simples lisa. Flanges com junta grossa, roscas mal ajustadas ou redutores podem elevar K para 0,3–0,5 cada, dobrando as perdas singulares.`,
+     imp:'±6–12% na vazão'},
+    {cor:'#a78bfa',n:'Perfil altimétrico real do traçado',
+     d:'Assumido duto essencialmente horizontal (cota de saída = base do reservatório). Se houver pontos altos ao longo dos 430 m, a carga efetiva é reduzida — podendo até criar sifão ou bolsa de ar que interrompe o escoamento.',
+     imp:'±0–20% (desconhecido)'},
+    {cor:'#38bdf8',n:'Temperatura da água',
+     d:'ν(15°C)=1,14×10⁻⁶ vs ν(30°C)=0,80×10⁻⁶ m²/s. Em regime turbulento rugoso, impacto na viscosidade é pequeno, mas altera Re e ligeiramente f.',
+     imp:'±2–3% na vazão'},
+    {cor:'#64748b',n:'Condição da saída do duto',
+     d:'Saída livre ao ar → K=1,0 (assumido). Se saída submersa ou com válvula parcialmente fechada, K pode ser muito maior.',
+     imp:'±3–8% na vazão'},
+  ];
+  let html='';
+  itens.forEach(it=>{
+    html+=`<div class="irow"><div class="idot" style="background:${it.cor}"></div><div><div class="iname">${it.n}</div><div class="idesc">${it.d}</div><div class="iimp" style="color:${it.cor}">Impacto estimado: ${it.imp}</div></div></div>`;
+  });
+  document.getElementById('incert-list').innerHTML=html;
+
+  // Confiabilidade
+  const hfRatio=dw.hfs/(dw.hfd+dw.hfs);
+  let conf=65;
+  if(hfRatio<0.08) conf=75;
+  if(hfRatio>0.20) conf=55;
+
+  const margem=conf<60?0.28:conf<70?0.22:0.16;
+  const qLow=Q*(1-margem), qHigh=Q*(1+margem);
+
+  document.getElementById('conf-bar').style.width=conf+'%';
+  document.getElementById('conf-pct').textContent=conf+' %';
+  document.getElementById('conf-range').textContent=
+    `Faixa provável: ${fmt(qLow,1)} – ${fmt(qHigh,1)} m³/h  (±${(margem*100).toFixed(0)}%)`;
+  document.getElementById('conf-note').textContent=
+    `Darcy-Weisbach com os dados fornecidos tem confiabilidade estimada de ${conf}%. `+
+    `O resultado de ${fmt(Q,1)} m³/h é ordem de grandeza confiável para dimensionamento preliminar. `+
+    `Para maior precisão: (1) medir DI real com paquímetro; (2) inspecionar tipo de uniões; (3) levantar perfil altimétrico do traçado; (4) medir a vazão real com um balde e cronômetro e usar para calibrar os parâmetros.`;
+}
+
+// ── GRÁFICOS ──────────────────────────────────────────────────────
 function setupCanvas(id,h){
-  const c=document.getElementById(id);
-  const dpr=devicePixelRatio||1;
+  const c=document.getElementById(id),dpr=devicePixelRatio||1;
   c.width=(c.offsetWidth||400)*dpr; c.height=h*dpr;
   const ctx=c.getContext('2d'); ctx.scale(dpr,dpr);
   return{ctx,W:c.offsetWidth||400,H:h};
 }
 
-function drawLineChart(ctx,W,H,series,pad,xLabel){
+function drawLines(ctx,W,H,series,pad,xLabel){
   const pw=W-pad.l-pad.r, ph=H-pad.t-pad.b;
-  const allQ=series.flatMap(s=>s.data);
-  const maxQ=Math.max(...allQ)*1.08||1;
+  const allQ=series.flatMap(s=>s.data), maxQ=Math.max(...allQ)*1.08||1;
   ctx.clearRect(0,0,W,H);
   ctx.strokeStyle='#252d3d'; ctx.lineWidth=1;
   for(let i=0;i<=4;i++){
@@ -344,30 +450,28 @@ function drawLineChart(ctx,W,H,series,pad,xLabel){
   });
 }
 
-function drawChartL(H,D,L,eps,Cd,K){
+function drawChartL(H,D,L,eps,Cd,C){
   const{ctx,W,H:CH}=setupCanvas('chart-L',195);
   const pad={t:20,b:22,l:42,r:10};
   const Ls=Array.from({length:40},(_,i)=>10+i*25);
   const ci=Math.min(39,Math.max(0,Math.round((L-10)/25)));
-  const s=[
+  drawLines(ctx,W,CH,[
     {color:'var(--c-dw)',data:Ls.map(l=>calcDW(H,D,l,eps).Q_m3h),cur:ci},
-    {color:'var(--c-an)',data:Ls.map(l=>calcAN(H,D,l,K).Q_m3h),cur:ci},
+    {color:'var(--c-hw)',data:Ls.map(l=>calcHW(H,D,l,C).Q_m3h),cur:ci},
     {color:'var(--c-tc)',data:Ls.map(_=>calcTC(H,D,Cd).Q_m3h),cur:ci},
-  ];
-  drawLineChart(ctx,W,CH,s,pad,`L: 10→985 m (atual: ${L} m)`);
+  ],pad,`L: 10→985 m  (atual: ${L} m)`);
 }
 
-function drawChartD(H,D,L,eps,Cd,K){
+function drawChartD(H,D,L,eps,Cd,C){
   const{ctx,W,H:CH}=setupCanvas('chart-D',195);
   const pad={t:20,b:22,l:42,r:10};
   const Ds=Array.from({length:40},(_,i)=>50+i*6.5);
   const ci=Math.min(39,Math.max(0,Math.round((D-50)/6.5)));
-  const s=[
+  drawLines(ctx,W,CH,[
     {color:'var(--c-dw)',data:Ds.map(d=>calcDW(H,d,L,eps).Q_m3h),cur:ci},
-    {color:'var(--c-an)',data:Ds.map(d=>calcAN(H,d,L,K).Q_m3h),cur:ci},
+    {color:'var(--c-hw)',data:Ds.map(d=>calcHW(H,d,L,C).Q_m3h),cur:ci},
     {color:'var(--c-tc)',data:Ds.map(d=>calcTC(H,d,Cd).Q_m3h),cur:ci},
-  ];
-  drawLineChart(ctx,W,CH,s,pad,`D: 50→295 mm (atual: ${D} mm)`);
+  ],pad,`D: 50→295 mm  (atual: ${D} mm)`);
 }
 
 function drawSchematic(H,D,L){
@@ -379,10 +483,10 @@ function drawSchematic(H,D,L){
   ctx.fillStyle='rgba(0,212,170,0.12)';ctx.fillRect(tx+2,nivel,tw-4,ty+th-nivel-2);
   ctx.strokeStyle='var(--c-dw)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(tx+4,nivel);ctx.lineTo(tx+tw-4,nivel);ctx.stroke();
   const hEnd=ty+th;
-  ctx.strokeStyle='var(--c-an)';ctx.setLineDash([3,3]);
+  ctx.strokeStyle='#f5a623';ctx.setLineDash([3,3]);
   ctx.beginPath();ctx.moveTo(tx+tw+10,nivel);ctx.lineTo(tx+tw+10,hEnd);ctx.stroke();
   ctx.setLineDash([]);
-  ctx.fillStyle='var(--c-an)';ctx.font='10px IBM Plex Mono';ctx.textAlign='left';
+  ctx.fillStyle='#f5a623';ctx.font='10px IBM Plex Mono';ctx.textAlign='left';
   ctx.fillText('H='+H.toFixed(1)+'m',tx+tw+14,(nivel+hEnd)/2+4);
   const pipeY=hEnd-8,pipeStart=tx+tw,pipeEnd=W-24,pH=Math.max(4,D/22);
   ctx.fillStyle='#252d3d';ctx.fillRect(pipeStart,pipeY-pH/2,pipeEnd-pipeStart,pH);
@@ -398,7 +502,7 @@ function drawSchematic(H,D,L){
   ctx.fillStyle='var(--c-dw)';ctx.textAlign='left';ctx.fillText('↓saída',pipeEnd-2,pipeY-pH/2-3);
 }
 
-[slH,slD,slL,slCd,slK,slE].forEach(s=>s.addEventListener('input',update));
+[slH,slD,slL,slC,slCd,slE].forEach(s=>s.addEventListener('input',update));
 window.addEventListener('resize',update);
 update();
 </script>
